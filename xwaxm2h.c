@@ -73,7 +73,9 @@ int main(int argc, char *argv[]) {
     FILE* midi;
     unsigned int notenumber[128];
     unsigned int key_code[128];
-    int temp, i;
+    int temp, temp_v, temp_ch, i;
+	int FL = 0;
+	int BYPASS = 0;
     snd_midi_event_t* parser;
     snd_seq_event_t event;
 
@@ -96,6 +98,12 @@ int main(int argc, char *argv[]) {
     
     key_code[down] = 108;
     notenumber[down] = down;
+	
+	key_code[page_up] = 104;
+    notenumber[page_up] = page_up;
+    
+    key_code[page_down] = 109;
+    notenumber[page_down] = page_down;
   
     key_code[left] = 105;
     notenumber[left] = left;
@@ -109,35 +117,17 @@ int main(int argc, char *argv[]) {
     key_code[f2] = 60;
     notenumber[f2] = f2;
 
-    key_code[f3] = 61;
-    notenumber[f3] = f3;
+//    key_code[f3] = 61;
+//    notenumber[f3] = f3;
 
-    key_code[f5] = 63;
-    notenumber[f5] = f5;
+//    key_code[control] = 29;
+ //   notenumber[control] = control;
 
-    key_code[f6] = 64;
-    notenumber[f6] = f6;
+    //key_code[toggle] = 42;
+    //notenumber[toggle] = toggle;
 
-    key_code[f7] = 65;
-    notenumber[f7] = f7;
-
-    key_code[f9] = 67;
-    notenumber[f9] = f9;
-
-    key_code[f10] = 68;
-    notenumber[f10] = f10;
- 
-    key_code[f11] = 69;
-    notenumber[f11] = f11;
-
-    key_code[control] = 29;
-    notenumber[control] = control;
-
-    key_code[shift] = 42;
-    notenumber[shift] = shift;
-
-    key_code[tab] = 15;
-    notenumber[tab] = tab; 
+//    key_code[tab] = 15;
+//    notenumber[tab] = tab; 
  
 /* initialize virtual keyboard*/
  int uinp_fd;
@@ -153,28 +143,72 @@ if (!(midi = fopen(argv[1],"rb"))) {
    return 3;
   }
     
- snd_midi_event_new(32,&parser);
-/*feed implied note on message*/
+ snd_midi_event_new(32,&parser); /*feed implied note on message*/
  snd_midi_event_encode_byte(parser,0x9A,&event);
 
 /*main loop*/
- fputs("Ready for midi input\n",stderr);
-  while ((temp = fgetc(midi)) != EOF) { 
-    if (snd_midi_event_encode_byte(parser, temp, &event) == 1) {
+fputs("Ready for midi input\n",stderr);
+while ((temp = fgetc(midi)) != EOF) { 
+	if (snd_midi_event_encode_byte(parser, temp, &event) == 1) {
         if (event.type == SND_SEQ_EVENT_NOTEON) {
-           if ((event.data.note.note <= 127) && (event.data.note.velocity)) {
-              temp = event.data.note.note;
-              if (temp == notenumber[event.data.note.note]) { 
-                   
-                  send_key_event(uinp_fd, key_code[temp], 1);
-                  send_key_event(uinp_fd, key_code[temp], 0);
-                                        
-                 }
-     printf("%i->%i\n",event.data.note.note,(int)key_code[event.data.note.note]);
-             } 
-          }
-       }
-   }
+			if ((event.data.note.note <= 127) && (event.data.note.velocity)) {
+				temp = event.data.note.note;
+				if (temp == notenumber[event.data.note.note]) {
+					send_key_event(uinp_fd, key_code[temp], 1);
+					send_key_event(uinp_fd, key_code[temp], 0);
+					printf("Note: %i -> KeyCode: %i\n",event.data.note.note, (int)key_code[event.data.note.note]);
+				} else if (event.data.note.note == 64){
+					if (FL == 0) {
+						FL = 1;
+						printf("Note: %i FOLDER Scroll ON\n", event.data.note.note);
+					} else {
+						FL = 0;
+						printf("Note: %i FOLDER Scroll OFF\n", event.data.note.note);
+					}
+				} else if (event.data.note.note == 29){
+					if (BYPASS==0) {
+						system("amixer sset 'Output Mixer Line Bypass' on");
+						printf('BYPASS ON');
+					}
+					else if (BYPASS==0) {
+						system("amixer sset 'Output Mixer Line Bypass' off");
+						printf('BYPASS OFF');
+					}
+				}
+			} 
+		} else {
+			if (event.type == SND_SEQ_EVENT_CONTROLLER) {
+				//printf("Channel: %d\n", event.data.control.channel);
+				//printf("Param: %d\n", event.data.control.param);
+				//printf("Value: %d\n", event.data.control.value);
+				printf("Channel: %i, Control: %i -> KeyCode: %i\n", event.data.control.channel, event.data.control.value, (int)key_code[event.data.control.value]);
+				temp_v = event.data.control.value;
+				temp_ch = event.data.control.channel;
+				
+				
+				if (FL == 1) {
+					temp_v = temp_v + 20;
+					// folder scroll
+				}
+				else if ((FL == 0) && (temp_ch == 1)) {
+					// scroll library
+				}
+				else if ((FL == 0) && (temp_ch == 0)) {
+					temp_v = temp_v + 10;
+					// page scroll library
+				}
+					
+				
+				if (temp_v == notenumber[temp_v]) {
+					send_key_event(uinp_fd, key_code[temp_v], 1);
+					send_key_event(uinp_fd, key_code[temp_v], 0);                    
+				}
+				printf("\nControl: %i -> KeyCode: %i\n",temp_v, (int)key_code[temp_v]);
+				
+			}
+		}
+	}
+}
 
 
 
