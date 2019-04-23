@@ -168,11 +168,11 @@ while ((temp = fgetc(midi)) != EOF) {
 				} else if (event.data.note.note == 29){
 					if (BYPASS==0) {
 						system("amixer sset 'Output Mixer Line Bypass' on");
-						printf('BYPASS ON');
+						printf("BYPASS ON");
 					}
 					else if (BYPASS==0) {
 						system("amixer sset 'Output Mixer Line Bypass' off");
-						printf('BYPASS OFF');
+						printf("BYPASS OFF");
 					}
 				}
 			} 
