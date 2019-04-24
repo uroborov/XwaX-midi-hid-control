@@ -117,8 +117,8 @@ int main(int argc, char *argv[]) {
     key_code[f2] = 60;
     notenumber[f2] = f2;
 
-//    key_code[f3] = 61;
-//    notenumber[f3] = f3;
+    key_code[f3] = 61;
+    //notenumber[f3] = f3;
 
 //    key_code[control] = 29;
  //   notenumber[control] = control;
@@ -167,12 +167,23 @@ while ((temp = fgetc(midi)) != EOF) {
 					}
 				} else if (event.data.note.note == 29){
 					if (BYPASS==0) {
+						system("amixer sset 'Output Mixer HiFi' off");	
+						system("amixer cset numid=4,iface=MIXER,name='Line Capture Switch' off"); 
 						system("amixer sset 'Output Mixer Line Bypass' on");
-						printf("BYPASS ON");
+						system("sleep 0.1s");
+						send_key_event(uinp_fd, key_code[f3], 1);
+						send_key_event(uinp_fd, key_code[f3], 0);
+						BYPASS = 1;
+						printf("BYPASS ON\n");
 					}
-					else if (BYPASS==0) {
+					else if (BYPASS==1) {
 						system("amixer sset 'Output Mixer Line Bypass' off");
-						printf("BYPASS OFF");
+						system("amixer cset numid=4,iface=MIXER,name='Line Capture Switch' on"); 
+						system("amixer sset 'Output Mixer HiFi' on");
+						send_key_event(uinp_fd, key_code[f3], 1);
+						send_key_event(uinp_fd, key_code[f3], 0);
+						BYPASS = 0;
+						printf("BYPASS OFF\n");
 					}
 				}
 			} 
