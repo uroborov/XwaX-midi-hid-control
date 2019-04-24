@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     key_code[down] = 108;
     notenumber[down] = down;
 	
-	key_code[page_up] = 104;
+    key_code[page_up] = 104;
     notenumber[page_up] = page_up;
     
     key_code[page_down] = 109;
@@ -117,10 +117,14 @@ int main(int argc, char *argv[]) {
     key_code[f2] = 60;
     notenumber[f2] = f2;
 
-    key_code[f3] = 61;
+    int key_bypass = 61;
+    int key_ctrl = 29;
+    int key_shift = 42;
+    int key_tab = 15;
+	   
     //notenumber[f3] = f3;
-
-//    key_code[control] = 29;
+   
+ //   key_code[control] = 29;
  //   notenumber[control] = control;
 
     //key_code[toggle] = 42;
@@ -171,8 +175,8 @@ while ((temp = fgetc(midi)) != EOF) {
 						system("amixer cset numid=4,iface=MIXER,name='Line Capture Switch' off"); 
 						system("amixer sset 'Output Mixer Line Bypass' on");
 						system("sleep 0.1s");
-						send_key_event(uinp_fd, key_code[f3], 1);
-						send_key_event(uinp_fd, key_code[f3], 0);
+						send_key_event(uinp_fd, key_bypass, 1);
+						send_key_event(uinp_fd, key_bypass, 0);
 						BYPASS = 1;
 						printf("BYPASS ON\n");
 					}
@@ -180,11 +184,20 @@ while ((temp = fgetc(midi)) != EOF) {
 						system("amixer sset 'Output Mixer Line Bypass' off");
 						system("amixer cset numid=4,iface=MIXER,name='Line Capture Switch' on"); 
 						system("amixer sset 'Output Mixer HiFi' on");
-						send_key_event(uinp_fd, key_code[f3], 1);
-						send_key_event(uinp_fd, key_code[f3], 0);
+						send_key_event(uinp_fd, key_bypass, 1);
+						send_key_event(uinp_fd, key_bypass, 0);
 						BYPASS = 0;
 						printf("BYPASS OFF\n");
 					}
+				} else if (event.data.note.note == 30){
+						send_key_event(uinp_fd, key_ctrl, 1);
+						send_key_event(uinp_fd, key_shift, 1);
+						send_key_event(uinp_fd, key_tab, 1);
+						
+						send_key_event(uinp_fd, key_ctrl, 0);
+						send_key_event(uinp_fd, key_shift, 0);
+						send_key_event(uinp_fd, key_tab, 0);
+						printf("RESCAN\n");
 				}
 			} 
 		} else {
