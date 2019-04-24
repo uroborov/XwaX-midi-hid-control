@@ -25,7 +25,7 @@ up = 34; will assign note 34 to the up cursor key
 	/* deck 1 */
         int f1 = 22;   // load to deck1
         int f2 = 36;   // set time 
-        int f3 = 29;   // toggle vinyl control 
+       // int f3 = 29;   // toggle vinyl control 
         /* additional controls */
         //int control = 38;
         //int toggle = 69;
